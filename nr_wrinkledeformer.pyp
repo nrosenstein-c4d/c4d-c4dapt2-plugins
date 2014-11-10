@@ -169,7 +169,7 @@ class WrinkleDeformer(c4d.plugins.ObjectData):
     PluginName = res.string('WRINKLEDEFORMER_NAME')
     PluginDescription = "Onr_wrinkledeformer"
     PluginInfo = c4d.OBJECT_MODIFIER
-    PluginIcon = res.bitmap('res', 'icon.png')
+    PluginIcon = res.bitmap('res', 'icon.tif')
 
     @classmethod
     def register(cls):
