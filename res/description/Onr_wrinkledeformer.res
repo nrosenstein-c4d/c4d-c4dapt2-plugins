@@ -1,0 +1,11 @@
+CONTAINER Onr_wrinkledeformer
+{
+    NAME Onr_wrinkledeformer;
+    INCLUDE Obase;
+
+    GROUP ID_OBJECTPROPERTIES
+    {
+        LONG NR_WRINKLEDEFORMER_SEED { DEFAULT 42892; STEP 13; }
+        LONG NR_WRINKLEDEFORMER_ITERATIONS { DEFAULT 7; MIN 0; MAX 100; }
+    }
+}

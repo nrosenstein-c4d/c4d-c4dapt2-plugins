@@ -3,6 +3,7 @@
 
 __author__ = 'Niklas Rosenstein <rosensteinniklas@gmail.com>'
 __version__ = '1.0'
+__title__ = 'WrinkleDeformer ' + __version__
 
 # ~~~~~~~~~~~~ localimport bootstrap ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # see https://gist.github.com/NiklasRosenstein/f5690d8f36bbdc8e5556
@@ -34,17 +35,38 @@ class localimport(object):
         else: return False
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# ~~~~~~~~~~~~ resource symbols ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+class res:
+    project_path = os.path.dirname(__file__)
+    def string(self, name, *subst):
+        result = __res__.LoadString(getattr(self, name))
+        for item in subst: result = result.replace('#', item, 1)
+        return result
+    def tup(self, name, *subst):
+        return (getattr(self, name), self.string(name, *subst))
+    def file(self, *parts):
+        return os.path.join(self.project_path, *parts)
+    def bitmap(self, *parts):
+        b = c4d.bitmaps.BaseBitmap()
+        if b.InitWith(self.file(*parts))[0] != c4d.IMAGERESULT_OK: return None
+        return b
+
+    WRINKLEDEFORMER_NAME       = 10000
+    WRINKLEDEFORMER_ACTIONTEXT = 10001
+
+    NR_WRINKLEDEFORMER_SEED       = 1000
+    NR_WRINKLEDEFORMER_ITERATIONS = 1001
+    Onr_wrinkledeformer           = 1033765
+res = res()
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 import os, sys
 import c4d, math, random
 import logging
-with localimport('library'):
-    import res; res.init(__file__, __res__)
 
-singleton = lambda x: x()
-
-@singleton
+@apply
 def logger():
-    logger = logging.Logger('PaperCut v' + __version__)
+    logger = logging.Logger(__title__)
     formatter = logging.Formatter('[%(name)s - %(levelname)s]: %(message)s')
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
@@ -56,6 +78,17 @@ class KnifeSession(object):
     This class represents a session to apply commands using the
     knife tool on a Cinema 4D Point or Polygon Object.
     """
+
+    @staticmethod
+    def random_rotation(r=random):
+        getr = lambda: r.random() * 2 - 1
+        getv = lambda: c4d.Vector(getr(), getr(), getr())
+        m = c4d.Matrix()
+        kompl = getv()
+        m.v1 = getv()
+        m.v2 = kompl.Cross(m.v1)
+        m.v3 = m.v1.Cross(m.v3)
+        return m
 
     def __init__(self, obj, options=None):
         super(KnifeSession, self).__init__()
@@ -89,47 +122,52 @@ class KnifeSession(object):
 
         mode = c4d.MODELINGCOMMANDMODE_ALL
         flags = c4d.MODELINGCOMMANDFLAGS_0
-        c4d.utils.SendModelingCommand(c4d.MCOMMAND_KNIFE, [self.obj],
-            bc=data, mode=mode, doc=self.obj.GetDocument(), flags=flags)
+        if not c4d.utils.SendModelingCommand(c4d.MCOMMAND_KNIFE, [self.obj],
+                bc=data, mode=mode, doc=self.obj.GetDocument(), flags=flags):
+            print "foo"
 
-    def randomize(self, iterations, seed):
+    def randomize(self, iterations, seed, predicate=None):
         """
         Applies *iteration* cuts using randomly generated values based
         on the specified *seed* value.
         """
 
-        rgen = random.Random(seed)
-        rand = lambda: rgen.random() * 2 - 1
-        rvgen = lambda: c4d.Vector(rand(), rand(), rand()).GetNormalized()
-
         mg = self.obj.GetMg()
-        rad = self.obj.GetRad().GetLength()
-        cuts = []
+        rad = self.obj.GetRad()
+        mul = rad.GetLengthSquared()
 
-        for i in xrange(iterations):
-            p1 = rvgen() * rad
-            p2 = -p1
-            p1 = mg * p1
-            p2 = mg * p2
+        rand = random.Random(seed)
+        rand11 = lambda: rand.random() * 2 - 1
 
-            n1 = rvgen()
-            n2 = (p2 - p1).GetNormalized()
-            p1 -= n1 * rad
-            p2 -= n1 * rad
+        for __ in xrange(iterations):
 
-            off = n1.Cross(n2) * rad * rgen.random()
-            p1 += off
-            p2 += off
+            # Check if we should stop doing things.
+            if predicate and not predicate():
+                return False
 
-            cuts.append((p1, n1, p2, n2))
+            # We choose a random mid-point inside the object.
+            mid = c4d.Vector(
+                rand11() * rad.x, rand11() * rad.y, rand11() * rad.z)
+
+            mat = KnifeSession.random_rotation(rand)
+            direction = (mat.v1 + mat.v2) * 0.5
+            mat.off = -(direction * mul)
+            mat = mg * mat
+            mat.off += mid
+
+            n1 = mat.v1
+            n2 = mat.v2
+            p1 = n1 + mat.off
+            p2 = n2 + mat.off
             self.cut(p1, n1, p2, n2)
-        return cuts
 
-class PaperCut(c4d.plugins.ObjectData):
+        return True
+
+class WrinkleDeformer(c4d.plugins.ObjectData):
 
     PluginId = 1033765
-    PluginName = "PaperCut"
-    PluginDescription = "Onrpapercutdeformer"
+    PluginName = res.string('WRINKLEDEFORMER_NAME')
+    PluginDescription = "Onr_wrinkledeformer"
     PluginInfo = c4d.OBJECT_MODIFIER
     PluginIcon = res.bitmap('res', 'icon.png')
 
@@ -141,9 +179,6 @@ class PaperCut(c4d.plugins.ObjectData):
 
     # c4d.plugins.ObjectData
 
-    def CheckDirty(self, op, doc):
-        op.SetDirty(c4d.DIRTYFLAGS_DATA)
-
     def ModifyObject(self, op, doc, pobj, pobj_mg, op_mg, lod, flags, thread):
 
         # Just make sure we don't operate on invalid data which
@@ -153,27 +188,31 @@ class PaperCut(c4d.plugins.ObjectData):
                 'object in ModifyObject()')
             return True
 
-        seed = op[res.NR_PAPERCUTDEFORMER_SEED]
-        iterations = op[res.NR_PAPERCUTDEFORMER_ITERATIONS]
+        seed = op[res.NR_WRINKLEDEFORMER_SEED]
+        iterations = op[res.NR_WRINKLEDEFORMER_ITERATIONS]
 
-        session = KnifeSession(pobj)
-        session.randomize(iterations, seed)
+        text = res.string('WRINKLEDEFORMER_ACTIONTEXT', pobj.GetName())
+        c4d.StatusSetText(text)
+        c4d.StatusSetSpin()
+        try:
+            session = KnifeSession(pobj)
+            session.randomize(iterations, seed)
+        finally:
+            c4d.StatusClear()
         return True
 
     # c4d.plugins.NodeData
 
     def Init(self, op):
-        self.InitAttr(op, int, [res.NR_PAPERCUTDEFORMER_SEED])
-        self.InitAttr(op, int, [res.NR_PAPERCUTDEFORMER_ITERATIONS])
+        self.InitAttr(op, int, [res.NR_WRINKLEDEFORMER_SEED])
+        self.InitAttr(op, int, [res.NR_WRINKLEDEFORMER_ITERATIONS])
 
-        op[res.NR_PAPERCUTDEFORMER_SEED] = 42892
-        op[res.NR_PAPERCUTDEFORMER_ITERATIONS] = 7
+        op[res.NR_WRINKLEDEFORMER_SEED] = 42892
+        op[res.NR_WRINKLEDEFORMER_ITERATIONS] = 7
         return True
 
 def main():
-    print res.string('FOO', 'Peter', 'Sunny')
-    print res.tup('FOO', 'Peter', 'Sunny')
-    if PaperCut.register():
+    if WrinkleDeformer.register():
         logger.info('registered')
 
 if __name__ == "__main__":

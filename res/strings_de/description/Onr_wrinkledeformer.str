@@ -1,0 +1,6 @@
+STRINGTABLE Onr_wrinkledeformer
+{
+    Onr_wrinkledeformer "Knitter Deformer";
+    NR_WRINKLEDEFORMER_SEED "Zuf\U00E4lliger Wert";
+    NR_WRINKLEDEFORMER_ITERATIONS "Durchl\U00E4ufe"
+}

@@ -3,7 +3,8 @@
 
 enum
 {
-    FOO = 10000,
+  WRINKLEDEFORMER_NAME = 10000,
+  WRINKLEDEFORMER_ACTIONTEXT,
 };
 
 #endif /* C4D_SYMBOLS_H__ */

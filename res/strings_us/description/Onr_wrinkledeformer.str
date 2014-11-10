@@ -1,0 +1,6 @@
+STRINGTABLE Onr_wrinkledeformer
+{
+    Onr_wrinkledeformer "Wrinkle Deformer";
+    NR_WRINKLEDEFORMER_SEED "Seed";
+    NR_WRINKLEDEFORMER_ITERATIONS "Iterations";
+}

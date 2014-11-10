@@ -3,9 +3,9 @@
 
 enum
 {
-  Onrpapercutdeformer = 1033765,
-  NR_PAPERCUTDEFORMER_SEED = 1000,
-  NR_PAPERCUTDEFORMER_ITERATIONS = 1001,
+  Onr_wrinkledeformer = 1033765,
+  NR_WRINKLEDEFORMER_SEED = 1000,
+  NR_WRINKLEDEFORMER_ITERATIONS = 1001,
 };
 
 #endif /* Onrpapercutdeformer_H__ */

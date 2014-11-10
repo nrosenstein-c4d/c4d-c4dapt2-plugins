@@ -1,6 +1,0 @@
-STRINGTABLE Onrpapercutdeformer
-{
-    Onrpapercutdeformer "PapierSchneider";
-    NR_PAPERCUTDEFORMER_SEED "Zuf\U00E4lliger Wert";
-    NR_PAPERCUTDEFORMER_ITERATIONS "Durchl\U00E4ufe"
-}
