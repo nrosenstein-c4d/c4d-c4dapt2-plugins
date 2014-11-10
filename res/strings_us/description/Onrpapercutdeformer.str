@@ -1,0 +1,6 @@
+STRINGTABLE Onrpapercutdeformer
+{
+    Onrpapercutdeformer "PaperCut Deformer";
+    NR_PAPERCUTDEFORMER_SEED "Seed";
+    NR_PAPERCUTDEFORMER_ITERATIONS "Iterations";
+}

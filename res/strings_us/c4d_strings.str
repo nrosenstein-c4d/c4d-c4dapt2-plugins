@@ -1,0 +1,4 @@
+STRINGTABLE
+{
+    FOO "Hello #, How are you? #";
+}
