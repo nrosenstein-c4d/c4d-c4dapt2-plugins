@@ -34,30 +34,6 @@ class localimport(object):
             else: return s == os.curdir or not s.startswith(os.pardir)
         else: return False
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~~~~~~~~~~~~ resource symbols ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-class res:
-    project_path = os.path.dirname(__file__)
-    def string(self, name, *subst):
-        result = __res__.LoadString(getattr(self, name))
-        for item in subst: result = result.replace('#', item, 1)
-        return result
-    def tup(self, name, *subst):
-        return (getattr(self, name), self.string(name, *subst))
-    def file(self, *parts):
-        return os.path.join(self.project_path, *parts)
-    def bitmap(self, *parts):
-        b = c4d.bitmaps.BaseBitmap()
-        if b.InitWith(self.file(*parts))[0] != c4d.IMAGERESULT_OK: return None
-        return b
-
-    WRINKLEDEFORMER_NAME       = 10000
-    WRINKLEDEFORMER_ACTIONTEXT = 10001
-
-    NR_WRINKLEDEFORMER_SEED       = 1000
-    NR_WRINKLEDEFORMER_ITERATIONS = 1001
-    Onr_wrinkledeformer           = 1033765
-res = res()
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 import os
 import sys
@@ -66,6 +42,7 @@ import logging
 
 
 with localimport('lib'):
+    import res; res.init(__file__, __res__)
     import knife
 
 
