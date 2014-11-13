@@ -5,8 +5,12 @@ This module implements invoking the Knife Modeling Command from
 Cinema 4D on a Polygon Object.
 '''
 
+__all__ = ['Session', 'cut']
+
+
 import c4d
 import random
+
 
 class Session(object):
     '''
@@ -92,6 +96,17 @@ class Session(object):
             # Do the actual cut.
             self.cut(p1, p2, n1, n2)
 
+
+def cut(obj, p1, p2, p3):
+    '''
+    See :meth:`Session.cut`.
+
+    :param obj: The :class:`c4d.PolygonObject`
+    '''
+
+    return Session(obj).cut(p1, p2, p3)
+
+
 def get_random_rotation(r=random):
     '''
     Creates a :class:`c4d.Matrix` that has a completely random
@@ -106,13 +121,3 @@ def get_random_rotation(r=random):
     m.v2 = m.v1.Cross(m.v3)
     m.Normalize()
     return m
-
-def cut(obj, p1, p2, p3):
-    '''
-    See :meth:`Session.cut`.
-
-    :param obj: The :class:`c4d.PolygonObject`
-    '''
-
-    return Session(obj).cut(p1, p2, p3)
-
