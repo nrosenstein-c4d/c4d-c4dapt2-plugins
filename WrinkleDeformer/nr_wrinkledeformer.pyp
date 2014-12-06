@@ -1,9 +1,8 @@
 # Copyright (C) 2014  Niklas Rosenstein
 # All rights rights.
 
-__author__ = 'Niklas Rosenstein <rosensteinniklas@gmail.com>'
+__author__ = 'Niklas Rosenstein <rosensteinniklas(at)gmail.com>'
 __version__ = '1.0'
-__title__ = 'WrinkleDeformer ' + __version__
 
 # ~~~~~~~~~~~~ localimport bootstrap ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # see https://gist.github.com/NiklasRosenstein/f5690d8f36bbdc8e5556
@@ -40,21 +39,18 @@ import sys
 import c4d
 import logging
 
-
 with localimport('lib'):
     import res; res.init(__file__, __res__)
     import knife
-
 
 @apply
 def logger():
     formatter = logging.Formatter('[%(name)s - %(levelname)s]: %(message)s')
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    logger = logging.Logger(__title__)
+    logger = logging.Logger('WrinkleDeformer ' + __version__)
     logger.addHandler(handler)
     return logger
-
 
 class WrinkleDeformer(c4d.plugins.ObjectData):
 
@@ -62,7 +58,7 @@ class WrinkleDeformer(c4d.plugins.ObjectData):
     PluginName = res.string('WRINKLEDEFORMER_NAME')
     PluginDescription = "Onr_wrinkledeformer"
     PluginInfo = c4d.OBJECT_MODIFIER
-    PluginIcon = res.bitmap('res', 'icon.tif')
+    PluginIcon = res.bitmap('res', 'icon.png')
 
     @classmethod
     def register(cls):
@@ -88,8 +84,7 @@ class WrinkleDeformer(c4d.plugins.ObjectData):
         c4d.StatusSetText(text)
         c4d.StatusSetSpin()
         try:
-            session = knife.Session(pobj)
-            session.randomize(iterations, seed)
+            knife.randomize_cuts(pobj, iterations, seed)
         finally:
             c4d.StatusClear()
         return True
@@ -104,11 +99,9 @@ class WrinkleDeformer(c4d.plugins.ObjectData):
         op[res.NR_WRINKLEDEFORMER_ITERATIONS] = 7
         return True
 
-
 def main():
     if WrinkleDeformer.register():
         logger.info('registered')
-
 
 if __name__ == "__main__":
     main()
