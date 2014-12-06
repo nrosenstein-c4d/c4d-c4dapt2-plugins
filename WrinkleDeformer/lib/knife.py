@@ -1,8 +1,6 @@
 # Copyright (C) 2014  Niklas Rosenstein
 # All rights rights.
 
-__all__ = ['Session', 'cut']
-
 import c4d
 import random
 
